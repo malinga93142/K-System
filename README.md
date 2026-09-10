@@ -86,5 +86,5 @@ make run
 make run-gdb
 ```
 ## License
-Known-System (KS) is released under the GNU General Public License.
+K-System (KS) is released under the GNU General Public License.
 See [LICENSE](LICENSE) for details.
