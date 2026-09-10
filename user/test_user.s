@@ -9,7 +9,7 @@ hello_start:
     .ascii "hello from ring3"
 hello_end:
 get_msg:
-    pop edx          # return address == address right after `call`, i.e. the string itself
+    pop edx
     mov ecx, hello_end - hello_start
     int 65
     ; int 64

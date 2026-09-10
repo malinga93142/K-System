@@ -2,3 +2,5 @@ newthing
 *.elf
 obj
 *.iso
+*.log
+iso/

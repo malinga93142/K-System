@@ -6,9 +6,9 @@
 #include "../drivers/uart.h"
 #include "../drivers/vga.h"
 void ap_main(int a) {
-	init_gdt(a);
-	init_idt();
-	
-	aps_ready[a] = 1;
+  init_gdt(a);
+  init_idt();
+
+  aps_ready[a] = 1;
   for (;;) __asm__ volatile("hlt");
 }

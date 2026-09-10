@@ -5,25 +5,40 @@
 #include "../cpu/lapic.h"
 #include "../cpu/pic.h"
 #include "../cpu/smp.h"
+#include "../cpu/smp_bring.h"
 #include "../drivers/uart.h"
 #include "../drivers/vga.h"
+#include "../drivers/keyboard.h"
 #include "../mm/mm.h"
 #include "../mm/paging.h"
 #include "../mm/pmm.h"
-#include "../cpu/smp_bring.h"
 #include "kstring.h"
 
-extern char kernel_start[];
-extern char kernel_end[];
+extern uint8_t kernel_start[];
+extern uint8_t kernel_end[];
 extern void setup_usermode();
 // extern volatile int ap_ready;
-uint32_t k_phys_start = (uint32_t)(kernel_start - KERNEL_BASE);
+uint32_t k_phys_start = (uint32_t)kernel_start - KERNEL_BASE;
 uint32_t k_phys_end = (uint32_t)(kernel_end - KERNEL_BASE);
 void verify_magic(unsigned int magic) {
   if (magic != 0x36D76289) {
     uart_hex(magic);
     uart_puts("Wrong magic number\n\r");
     asm volatile("hlt");
+  }
+}
+
+// A simple polling loop, e.g. in kmain's idle loop or a dedicated shell task
+// later
+void input_echo_loop(void) {
+  for (;;) {
+    char c = keyboard_getchar();
+    if (c) {
+      vga_putc(c);
+      uart_putc(c); 
+    }
+    __asm__ volatile(
+        "hlt");
   }
 }
 void kmain(unsigned int magic, unsigned int mb_info_ptr) {
@@ -43,5 +58,6 @@ void kmain(unsigned int magic, unsigned int mb_info_ptr) {
   // setup_usermode();
   vga_clear();
   asm volatile("sti");
+  input_echo_loop();
   for (;;) __asm__ volatile("hlt");
 }
