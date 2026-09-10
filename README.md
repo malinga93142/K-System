@@ -78,7 +78,6 @@ Future goals include:
 KS currently targets a minimal x86 environment and is intended to be built and tested using an emulator such as QEMU.
 
 Build instructions will be added as the project evolves.
-
 ## License
-
-This project is an educational and experimental hobby OS kernel.
+Known-System (KS) is released under the GNU General Public License.
+See [LICENSE](LICENSE) for details.
