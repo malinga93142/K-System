@@ -76,6 +76,7 @@ Future goals include:
 ## Building
 
 KS currently targets a minimal x86 environment and is intended to be built and tested using an emulator such as QEMU.
+Build instructions will be added as the project evolves.
 
 ## Run
 ```bash
@@ -84,7 +85,6 @@ make run
 # gdb
 make run-gdb
 ```
-Build instructions will be added as the project evolves.
 ## License
 Known-System (KS) is released under the GNU General Public License.
 See [LICENSE](LICENSE) for details.
