@@ -1,6 +1,6 @@
-# Known-System (KS)
+# K-System (KS)
 
-Known-System (KS) is a small, educational, and experimental hobby operating system kernel designed by Malinga RK. KS is built from scratch to explore low-level operating system concepts and understand how kernels work internally.
+K-System (KS) is a small, educational, and experimental hobby operating system kernel designed by Malinga RK. KS is built from scratch to explore low-level operating system concepts and understand how kernels work internally.
 
 The goal of KS is not to be a production operating system, but a simple platform for experimenting with CPU architecture, memory management, multitasking, and user-space execution.
 
@@ -77,6 +77,13 @@ Future goals include:
 
 KS currently targets a minimal x86 environment and is intended to be built and tested using an emulator such as QEMU.
 
+## Run
+```bash
+# qemu
+make run
+# gdb
+make run-gdb
+```
 Build instructions will be added as the project evolves.
 ## License
 Known-System (KS) is released under the GNU General Public License.
