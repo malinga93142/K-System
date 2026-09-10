@@ -1,6 +1,7 @@
-newthing
+newthing/
 *.elf
-obj
+obj/
 *.iso
 *.log
 iso/
+*.o
