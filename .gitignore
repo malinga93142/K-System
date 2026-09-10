@@ -1,4 +1,5 @@
-newthing
+newthing/
 *.elf
-obj
+obj/
 *.iso
+*.o
