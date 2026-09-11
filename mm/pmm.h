@@ -1,8 +1,9 @@
 #ifndef PMM_H
 #define PMM_H
 
-#include "mm.h"
 #include <stdint.h>
+
+#include "mm.h"
 /* parses the multiboot mmap into __phys_e820_info (defined in multiboot.c) */
 void read_mmapable_range(uint32_t mbi);
 

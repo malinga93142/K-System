@@ -25,7 +25,13 @@ void uart_putc(char c) {
 }
 
 void uart_puts(const char* s) {
+  // uint32_t eflags = disable_local_interrupts();
+  // spinlock_acquire(&uart_lock);
+	uint32_t eflags = spinlock_lock_irqsave(&uart_lock);
   while (*s) uart_putc(*s++);
+  spinlock_release(&uart_lock);
+  // restore_local_interrupts(eflags);
+  spinlock_unlock_irqrestore(&uart_lock, eflags);
 }
 
 void uart_hex(uint32_t value) {

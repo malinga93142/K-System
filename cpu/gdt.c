@@ -1,6 +1,7 @@
 #include "gdt.h"
 #include "../mm/paging.h"
-#define MAX_CPU				4
+#include "cpu.h"
+#define MAX_CPU				2
 #define KERNEL_ISTACK_TOP 0xc0200000
 #define KERNEL_ISTACK_SIZE (16 * 1024)
 struct gdt_entry gdt32[6]; /* null, kcode, kdata, ucode, udata, tss */
@@ -10,15 +11,16 @@ struct gdtr gdtptr;
 
 struct gdt_entry gdt32_percpu[MAX_CPU][6];
 struct tss_entry tss_percpu[MAX_CPU];
-#if defined(AVL_SMP) && AVL_SMP == 4
+
+#if defined(AVL_SMP) && AVL_SMP == 2
 static void init_tss_for_cpu(int cpu_id)
 #else
 static void init_tss(void)
 #endif
 {
-#if defined(AVL_SMP) && AVL_SMP == 4
+#if defined(AVL_SMP) && AVL_SMP == 2
 	tss_percpu[cpu_id] = (struct tss_entry){0};
-	tss_percpu[cpu_id].ss = 0x10;
+	tss_percpu[cpu_id].ss0 = 0x10;
 	uint32_t top = kvm_create_guarded_stack(0xc0a00000 + cpu_id * 0x1000, 0x4000);
 	tss_percpu[cpu_id].esp0=top;
 	tss_percpu[cpu_id].iomap_base = sizeof(struct tss_entry);
@@ -32,7 +34,7 @@ static void init_tss(void)
       sizeof(tss); /* no I/O bitmap, so this points past the struct */
 #endif
 }
-#if defined(AVL_SMP) && AVL_SMP==4
+#if defined(AVL_SMP) && AVL_SMP==2
 static void set_tss_descriptor(struct gdt_entry *g, uint32_t base, uint32_t limit) {
 	g->limit_low = limit & 0xffff;
 	g->base_low	= base & 0xffff;
@@ -52,8 +54,9 @@ static void set_tss_descriptor(uint32_t index, uint32_t base, uint32_t limit) {
 }
 
 void init_gdt(int cpu_id) {
-#if defined(AVL_SMP) && AVL_SMP==4
+#if defined(AVL_SMP) && AVL_SMP==2
 	struct gdt_entry *g =  gdt32_percpu[cpu_id];
+	struct cpu *c = &cpus[cpu_id];
 	g[0]=(struct gdt_entry){0};
 	g[1]=(struct gdt_entry){0}; g[1].limit_low = 0xffff; g[1].gran=0xcf; g[1].access=0x9a;
 	g[2]=(struct gdt_entry){0}; g[2].limit_low = 0xffff; g[2].gran=0xcf; g[2].access=0x92;
@@ -61,6 +64,8 @@ void init_gdt(int cpu_id) {
 	g[4]=(struct gdt_entry){0}; g[4].limit_low = 0xffff; g[4].gran=0xcf; g[4].access=0xF2;
 	init_tss_for_cpu(cpu_id);
 	set_tss_descriptor(&g[5], (uint32_t)(uintptr_t)&tss_percpu[cpu_id], sizeof(struct tss_entry)-1);
+	c->gdt = g;
+	c->tss = &tss_percpu[cpu_id];
 	gdtptr.base = (uint32_t)(uintptr_t)&gdt32_percpu[cpu_id];
 	gdtptr.limit = sizeof(gdt32_percpu[cpu_id]) - 1;
 #else

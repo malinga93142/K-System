@@ -3,19 +3,6 @@
 #include "../drivers/uart.h"
 #include "../mm/paging.h"
 #include "../mm/pmm.h"
-
-#define LAPIC_VIRT_ADDR 0xC0500000
-
-#define LAPIC_REG_ID 0x020
-#define LAPIC_REG_SPURIOUS 0x0F0
-#define LAPIC_REG_EOI 0x0B0
-#define LAPIC_REG_ICR_LOW 0x300
-#define LAPIC_REG_ICR_HIGH 0x310
-#define LAPIC_REG_TIMER_LVT 0x320
-#define LAPIC_REG_TIMER_INITCNT 0x380
-#define LAPIC_REG_TIMER_CURCNT 0x390
-#define LAPIC_REG_TIMER_DIV 0x3E0
-
 static volatile uint32_t* lapic = (volatile uint32_t*)LAPIC_VIRT_ADDR;
 
 uint32_t lapic_read(uint32_t reg) { return lapic[reg / 4]; }
@@ -67,7 +54,14 @@ void lapic_init(void) {
   uart_hex(id);
   uart_puts("\n");
 }
+void lapic_send_ipi(uint32_t apic_id, uint32_t icr_low_value) {
+  lapic_write(LAPIC_REG_ICR_HIGH, apic_id << 24);
+  lapic_write(LAPIC_REG_ICR_LOW, icr_low_value);
 
+  /* wait for delivery -- poll the delivery-status bit (bit 12) until clear */
+  while (lapic_read(LAPIC_REG_ICR_LOW) & (1 << 12))
+    ;
+}
 uint32_t lapic_get_id(void) { return lapic_read(LAPIC_REG_ID) >> 24; }
 
 void lapic_send_eoi(void) { lapic_write(LAPIC_REG_EOI, 0); }

@@ -6,14 +6,16 @@
 void syscall_handler(struct exception_frame* ef) {
   switch (ef->int_no) {
     case 48:
+      uart_puts("hello");
       break;
     case 64:
+      uart_puts("hello");
       break;
     case 65: {
       const char* buf = (const char*)ef->edx;
       uint32_t len = ef->ecx;
       for (uint32_t i = 0; i < len; i++) {
-        vga_putc(buf[i]);
+        uart_putc(buf[i]);
       }
       break;
     }

@@ -12,7 +12,8 @@
 
 /* forward declaration */
 void double_fault(struct exception_frame* ef);
-
+void pf_handler(struct exception_frame* ef);
+extern void ipi_handler(struct exception_frame* ef);
 static inline uint32_t read_cr2(void) {
   uint32_t val;
   asm volatile("mov %%cr2, %0" : "=r"(val));
@@ -26,34 +27,7 @@ void exception_handler(struct exception_frame* ef) {
       break;
 
     case 14: {
-      uint32_t fault_addr = read_cr2();
-      uint32_t page_base = fault_addr & ~0xfff;
-      uart_puts("PAGE FAULT\n");
-      uart_puts("  cr2 (fault addr) = ");
-      uart_hex(fault_addr);
-      uart_puts("\n");
-      uart_puts("  eip              = ");
-      uart_hex(ef->eip);
-      uart_puts("\n");
-      uart_puts("  error_code       = ");
-      uart_hex(ef->error_code);
-      uart_puts("\n");
-      uart_puts("  eax              = ");
-      uart_hex(ef->eax);
-      uart_puts("\n");
-      if (ef->error_code & 0x1) {
-        uart_puts("PAGE FAULT: protection fault, not auto-mapping. halted");
-        while (1) asm volatile("hlt");
-      }
-
-      uint32_t frame = pmm_alloc_frame();
-      if (frame == 0) {
-        uart_puts("PAGE FAULT: OOM, cannot map. halting");
-        while (1) asm volatile("hlt");
-      }
-      vmm_map_page_post_switch(page_base, frame, PAGE_RW);
-      uart_puts("mapped\n");
-      uart_hex(page_base);
+    	pf_handler(ef);
       break;
     }
     case 32:
@@ -65,6 +39,10 @@ void exception_handler(struct exception_frame* ef) {
     case 65:
       syscall_handler(ef);
       break;
+    case 241:
+    	ipi_handler(ef);
+    	uart_puts("wake up");
+    	break;
     default:
       uart_puts("UNHANDLED INT ");
       uart_hex(ef->int_no);
@@ -80,13 +58,36 @@ void double_fault(struct exception_frame* ef) {
   while (1) asm volatile("hlt");
 }
 
-// void keyboard_handler(struct exception_frame *ef)
-// {
-//   uint8_t scancode = inb(0x60);
-
-//   uart_puts("KBD scancode=");
-//   uart_hex(scancode);
-//   uart_puts("\n");
-
-//   pic_send_eoi(1);
-// }
+void pf_handler(struct exception_frame *ef) {
+  uint32_t fault_addr = read_cr2();
+  uint32_t page_base = fault_addr & ~0xfff;
+  uart_puts("PAGE FAULT\n");
+  uart_puts("  cr2 (fault addr) = ");
+  uart_hex(fault_addr);
+  uart_puts("\n");
+  uart_puts("  eip              = ");
+  uart_hex(ef->eip);
+  uart_puts("\n");
+  uart_puts("  error_code       = ");
+  uart_hex(ef->error_code);
+  uart_puts("\n");
+  uart_puts("  eax              = ");
+  uart_hex(ef->eax);
+  uart_puts("\n");
+  if (ef->error_code & 0x1) {
+    uart_puts("PAGE FAULT: protection fault, not auto-mapping. halted");
+    while (1) asm volatile("hlt");
+  }
+  uint32_t frame = pmm_alloc_frame();
+  if (frame == 0) {
+    uart_puts("PAGE FAULT: OOM, cannot map. halting");
+    while (1) asm volatile("hlt");
+  }
+  uint32_t map_flags = PAGE_RW;
+  if (ef->error_code & 0x4) {
+    map_flags |= PAGE_USER;
+  }
+  vmm_map_page_post_switch(page_base, frame, map_flags);
+  uart_puts("mapped\n");
+  uart_hex(page_base);
+}

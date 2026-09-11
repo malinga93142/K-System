@@ -2,9 +2,7 @@
 #define SMP_H
 
 #include <stdint.h>
-#define MAX_APS   4
-#define LAPIC_ICR_LOW 0x300
-#define LAPIC_ICR_HIGH 0x310
+#define MAX_APS   2
 #define AP_TRAMPOLINE_PHYS 0x8000
 
 // #define AP_PATCH(dst, src, type, symbol)	

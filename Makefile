@@ -5,9 +5,12 @@ AS = as
 CFLAGS = -m32 -g -ffreestanding -nostdlib \
 					-fno-pie -fno-pic \
          -fno-stack-protector -Wall -Wextra
-CFLAGS += -DAVL_SMP=4
+CFLAGS += -DAVL_SMP=2
 ASFLAGS = --32 -g
 LDFLAGS = -m elf_i386 -T linker.ld
+
+QEMU = qemu-system-i386 -m 512M -smp 2 -cdrom
+QEMU_FLAGS = -enable-kvm -cpu host -serial mon:stdio -d int,cpu_reset -D qemu.log -no-reboot -no-shutdown
 
 OBJ = \
 	obj/boot.o \
@@ -18,6 +21,9 @@ OBJ = \
 	obj/exception.o \
 	obj/smp_bring.o \
 	obj/spinlock.o \
+	obj/cpu.o \
+	obj/smp.o \
+	obj/lapic.o \
 	obj/isr.o \
 	obj/uart.o \
 	obj/vga.o \
@@ -31,8 +37,6 @@ OBJ = \
 	obj/keyboard.o \
 	obj/timer.o \
 	obj/io.o \
-	obj/lapic.o \
-	obj/smp.o \
 	obj/usermode_c.o \
 	obj/usermode_s.o \
 	obj/test_user.o  \
@@ -47,6 +51,7 @@ obj/ap_tramp.o: cpu/ap_tramp.S
 obj/idt.o: cpu/idt.c
 obj/lapic.o: cpu/lapic.c
 obj/smp.o: cpu/smp.c
+obj/cpu.o: cpu/cpu.c
 obj/smp_bring.o: cpu/smp_bring.c
 obj/exception.o: cpu/exception.c
 obj/isr.o: cpu/isr.s
@@ -86,23 +91,9 @@ kernel.iso: kernel.elf
 	grub-mkrescue -o $@ $(ISO_DIR)
 
 run: kernel.iso
-	qemu-system-i386 \
-		-m 512M \
-		-smp 4 \
-		-enable-kvm \
-		-cdrom kernel.iso \
-		-serial mon:stdio \
-		-d int,cpu_reset -D qemu.log \
-		-no-reboot -no-shutdown
+	$(QEMU) $< $(QEMU_FLAGS)
 run-gdb: kernel.iso
-	qemu-system-i386 \
-		-m 512M \
-		-smp 4 \
-		-cdrom kernel.iso \
-		-serial mon:stdio \
-		-display none \
-		-d int,cpu_reset -D qemu.log \
-		-d int -s -S
+	$(QEMU) $< $(QEMU_FLAGS) -display none -s -S
 
 clean:
 	rm -rf obj *.elf *.iso iso qemu.log

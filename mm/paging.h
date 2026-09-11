@@ -28,33 +28,30 @@
 
 #ifndef PAGING_H
 #define PAGING_H
-
-#include "mm.h"
 #include <stdint.h>
-// #define PAGE_SIZE        0x1000
+#include "mm.h"
+
+
+
 #define PAGE_PRESENT 0x1
 #define PAGE_RW 0x2
 #define PAGE_USER 0x4
-#define PAGE_PCD	0x10
+#define PAGE_PCD 0x10
 #define PD_RECURSIVE_INDEX 1023
 #define RECURSIVE_PD_VADDR 0xFFFFF000u
 #define RECURSIVE_PT_VADDR(pd_idx) (0xFFC00000u + ((pd_idx) << 12))
-
-
-// #define PDE_INDEX(v)  (((uint32_t)(v)) >> 22)
-// #define PTE_INDEX(v)  ((((uint32_t)(v)) >> 12) & 0x3FF)
-// #define PAGE_ALIGN_DOWN(x) ((x) & ~(PAGE_SIZE - 1))
-// #define PAGE_ALIGN_UP(x)   (((x) + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1))
+#define USER_CODE_FLAGS PAGE_RW | PAGE_USER
+#define USER_STACK_FLAGS PAGE_RW | PAGE_USER
 
 void vmm_init(uint32_t kernel_phys_start, uint32_t kernel_phys_end);
-uint32_t *vmm_new_directory(void);
-int vmm_map_page(uint32_t *pd, uint32_t vaddr, uint32_t paddr, uint32_t flags);
-void vmm_switch_directory(uint32_t *pd_phys);
-uint32_t vmm_get_phys(uint32_t *pd, uint32_t vaddr);
+uint32_t* vmm_new_directory(void);
+int vmm_map_page(uint32_t* pd, uint32_t vaddr, uint32_t paddr, uint32_t flags);
+void vmm_switch_directory(uint32_t* pd_phys);
+uint32_t vmm_get_phys(uint32_t* pd, uint32_t vaddr);
 int vmm_map_page_post_switch(uint32_t vaddr, uint32_t paddr, uint32_t flags);
 int vmm_map_fresh_page(uint32_t vaddr, uint32_t paddr, uint32_t flags);
 int uvm_map_page(uint32_t vaddr, uint32_t paddr, uint32_t flags);
-int uvm_load_page(uint32_t vaddr,const void *src,uint32_t size);
+int uvm_load_page(uint32_t vaddr, const void* src, uint32_t size);
 int uvm_create_stack(uint32_t s_top, uint32_t size);
 uint32_t kvm_create_guarded_stack(uint32_t top_vaddr, uint32_t size);
 #endif

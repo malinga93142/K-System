@@ -25,6 +25,11 @@ void init_idt() {
   setgate(&idt32[48], (uint32_t)(uintptr_t)isr48, 0x8, 0x8e);
   setgate(&idt32[64], (uint32_t)(uintptr_t)isr64, 0x8, 0xee);
   setgate(&idt32[65], (uint32_t)(uintptr_t)isr65, 0x8, 0xee);
+
+
+
+  setgate(&idt32[0xF1], (uint32_t)(uintptr_t)isr241, 0x8, 0x8e);
+
   asm volatile("lidt %0" ::"m"(idtptr) : "memory");
   irq_init();
 }

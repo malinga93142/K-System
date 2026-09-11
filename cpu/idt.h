@@ -23,5 +23,8 @@ extern void isr65();
 /* IRQs */
 extern void isr32();
 extern void isr33();
+
+
+extern void isr241();
 void init_idt();
 #endif
